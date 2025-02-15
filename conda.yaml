@@ -1,0 +1,27 @@
+name: python3.10-la-proj
+channels:
+  - defaults
+dependencies:
+  - python=3.10.14
+  - pip
+  - pip:
+    - ipykernel
+    - numpy
+    - matplotlib
+    - scikit-learn
+    - scipy
+    - requests
+    - pillow
+    - torch
+    - torchvision
+    - tqdm
+    - datasets
+    - transformers
+    - faiss-cpu
+    - fiftyone
+    - clip
+    - loraclip
+    - wandb
+
+
+    
