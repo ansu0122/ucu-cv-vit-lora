@@ -30,7 +30,7 @@ def build_faiss_index(dataloader, preprocess_fn, device="cuda"):
             features.append(embeddings.cpu().numpy())
             labels.extend(lbls.cpu().numpy())
 
-    features = np.vstack(features)
+    features = np.vstack(features).astype(np.float32)
     faiss_labels = np.array(labels)
 
     dim = features.shape[1]
@@ -72,7 +72,7 @@ def predict_with_faiss(dataloader, preprocess_fn, faiss_index, faiss_labels,
             imgs = imgs.to(device)
             embeddings = preprocess_fn(imgs)
 
-            features = embeddings.cpu().numpy()
+            features = np.ascontiguousarray(embeddings.cpu().numpy(), dtype=np.float32)
             distances, indices = faiss_index.search(features, top_k * 2)
 
             for i in range(len(features)):

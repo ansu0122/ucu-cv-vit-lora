@@ -6,20 +6,17 @@ dependencies:
   - pip
   - pip:
     - ipykernel
-    - numpy
+    - numpy==1.26.4
     - matplotlib
-    - scikit-learn
-    - scipy
-    - requests
     - pillow
-    - torch
+    - torch=2.6.0
     - torchvision
     - tqdm
     - datasets
     - transformers
-    - faiss-cpu
+    - faiss-gpu==1.7.2
     - fiftyone
-    - clip
+    - git+https://github.com/openai/CLIP.git
     - loraclip
     - wandb
 
