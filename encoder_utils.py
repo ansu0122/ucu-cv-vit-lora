@@ -154,7 +154,7 @@ class CLIPClassifier(nn.Module):
     """
     def __init__(self, clip_encoder, num_classes=100, fine_tune=False):
         super().__init__()
-        self.clip_encoder = clip_encoder
+        self.clip_encoder = clip_encoder.float()
 
         output_dim = self.clip_encoder.visual.output_dim
 

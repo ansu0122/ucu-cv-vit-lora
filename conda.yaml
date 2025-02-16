@@ -9,7 +9,7 @@ dependencies:
     - numpy==1.26.4
     - matplotlib
     - pillow
-    - torch=2.6.0
+    - torch==2.6.0
     - torchvision
     - tqdm
     - datasets

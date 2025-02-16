@@ -1,3 +1,4 @@
+import os
 import torch
 import urllib.request
 from clip_lora.model_builder import build_LoRA_model
@@ -9,6 +10,8 @@ _MODELS = {
 
 def download_clip_weights(model_name="ViT-B/16", save_path="models/clip_weights.pt"):
     """Download CLIP weights and save locally."""
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
     if model_name not in _MODELS:
         raise ValueError(f"Model {model_name} not found. Available models: {list(_MODELS.keys())}")
 

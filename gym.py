@@ -31,7 +31,7 @@ class Trainer:
         experiment_name: str = "default_experiment",
         project_name: str = "clip_finetuning",
         max_iter: int | None = None,
-        log_interval: int = 10
+        log_interval: int = 1
     ):
         """
         Trainer class for CLIP fine-tuning on labeled dataset with WandB logging and Hugging Face model storage
@@ -174,7 +174,6 @@ class Trainer:
             path_or_fileobj=self.checkpoint_path,
             path_in_repo=f"{self.experiment_name}.pth",
             token=HF_TOKEN,
-            private=True
         )
 
         print(f"Model uploaded to HF Hub as {self.experiment_name}.pth")
