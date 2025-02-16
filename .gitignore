@@ -175,3 +175,4 @@ cython_debug/
 clip_weights.pt
 models/
 data/
+wandb/

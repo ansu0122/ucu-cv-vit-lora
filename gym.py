@@ -7,7 +7,8 @@ from tqdm import tqdm
 from copy import deepcopy
 from dotenv import load_dotenv
 from torch.utils.data import DataLoader
-from huggingface_hub import HfApi, hf_hub_upload
+from huggingface_hub import HfApi, upload_file
+
 
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -50,7 +51,13 @@ class Trainer:
         self.max_iter = max_iter
         self.log_interval = log_interval
 
-        wandb.init(project=self.project_name, name=self.experiment_name, config={"epochs": num_epochs})
+        train_params, total_params = self.count_parameters()
+        wandb.init(project=self.project_name, 
+                   name=self.experiment_name, 
+                   config={"epochs": num_epochs, 
+                           'train_params': train_params, 
+                           'total_params': total_params,
+                           'lr': optimizer.param_groups[0]['lr']})
         wandb.watch(self.model, log="all")
 
         self.checkpoint_path = f"best_model_{experiment_name}.pth"
@@ -149,7 +156,8 @@ class Trainer:
 
         if self.hf_repo_name:
             self.save_to_hf()
-
+        
+        wandb.finish()
         return self.best_model_state
 
     def save_to_hf(self):
@@ -161,12 +169,22 @@ class Trainer:
             return
 
         api = HfApi(token=HF_TOKEN)
-        hf_hub_upload(
+        upload_file(
             repo_id=self.hf_repo_name,
             path_or_fileobj=self.checkpoint_path,
             path_in_repo=f"{self.experiment_name}.pth",
-            token=HF_TOKEN
+            token=HF_TOKEN,
+            private=True
         )
 
         print(f"Model uploaded to HF Hub as {self.experiment_name}.pth")
+
+
+    def count_parameters(self):
+        """
+        Count number of trainable parameters in the model
+        """
+        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        total_params = sum(p.numel() for p in self.model.parameters())
+        return trainable_params, total_params
 

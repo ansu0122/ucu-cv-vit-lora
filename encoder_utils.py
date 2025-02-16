@@ -5,15 +5,30 @@ import re
 import numpy as np
 from torch.utils.data import DataLoader
 import torch.nn as nn
+import torch.nn.functional as F
 
 
-def build_faiss_index(dataloader, preprocess_fn, device="cuda"):
+def preprocess_fn(model: nn.Module, imgs: torch.Tensor) -> torch.Tensor:
+    """
+    Preprocess CLIP embeddings - normalize for cosine similarity.
+    """
+    device = next(model.parameters()).device
+    imgs = imgs.to(device)
+    
+    model.eval()
+    with torch.no_grad():
+        features = model.encode_image(imgs)
+        features = F.normalize(features, p=2, dim=-1)
+    
+    return features
+
+def build_faiss_index(dataloader: DataLoader, model: nn.Module, device="cuda"):
     """
     Build a FAISS index with preprocessing applied directly.
 
     Args:
         dataloader (DataLoader): DataLoader for labeled data.
-        preprocess_fn (function): Preprocessing function for embeddings.
+        model (nn.Module): Encoder model for embeddings.
         device (str): Device to run computations ("cuda" or "cpu").
 
     Returns:
@@ -27,7 +42,7 @@ def build_faiss_index(dataloader, preprocess_fn, device="cuda"):
         for imgs, lbls in tqdm(dataloader, desc="Building FAISS Index"):
             imgs = imgs.to(device)
 
-            embeddings = preprocess_fn(imgs)
+            embeddings = preprocess_fn(model, imgs)
             features.append(embeddings.cpu().numpy())
             labels.extend(lbls.cpu().numpy())
 
@@ -42,14 +57,14 @@ def build_faiss_index(dataloader, preprocess_fn, device="cuda"):
     return faiss_labels, faiss_index
 
 
-def predict_with_faiss(dataloader, preprocess_fn, faiss_index, faiss_labels,
+def predict_with_faiss(dataloader, model, faiss_index, faiss_labels,
                               device="cuda", top_k=5, distractor_classes=None):
     """
     Predict top-k classes using FAISS with duplicate and distractor handling.
 
     Args:
         dataloader (DataLoader): DataLoader for test data.
-        preprocess_fn (function): Preprocessing function for embeddings.
+        model (nn.Module): Encoder model for embeddings.
         faiss_index (faiss.Index): Prebuilt FAISS index.
         faiss_labels (np.ndarray): Labels corresponding to FAISS index.
         device (str): Device to run computations ("cuda" or "cpu").
@@ -71,7 +86,7 @@ def predict_with_faiss(dataloader, preprocess_fn, faiss_index, faiss_labels,
     with torch.no_grad():
         for imgs, lbls in tqdm(dataloader, desc="Predicting with FAISS"):
             imgs = imgs.to(device)
-            embeddings = preprocess_fn(imgs)
+            embeddings = preprocess_fn(model, imgs)
 
             features = np.ascontiguousarray(embeddings.cpu().numpy(), dtype=np.float32)
             distances, indices = faiss_index.search(features, top_k * 2)
@@ -142,7 +157,6 @@ class CLIPClassifier(nn.Module):
         self.clip_encoder = clip_encoder
 
         output_dim = self.clip_encoder.visual.output_dim
-        print('clip visual output dim: ',output_dim)
 
         self.fc = nn.Linear(output_dim, num_classes)
         self.softmax = nn.Softmax(dim=1)
