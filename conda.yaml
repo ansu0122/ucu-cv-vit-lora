@@ -19,6 +19,8 @@ dependencies:
     - git+https://github.com/openai/CLIP.git
     - loraclip
     - wandb
+    - huggingface_hub 
+    - python-dotenv
 
 
     

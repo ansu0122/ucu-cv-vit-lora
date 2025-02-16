@@ -4,6 +4,7 @@ import faiss
 import re
 import numpy as np
 from torch.utils.data import DataLoader
+import torch.nn as nn
 
 
 def build_faiss_index(dataloader, preprocess_fn, device="cuda"):
@@ -126,3 +127,32 @@ def compute_topk_accuracy(ground_truth, predictions, top_k=1):
 
     return accuracy
 
+
+class CLIPClassifier(nn.Module):
+    """
+    CLIP-based classifier adapted for training on labeled data.
+
+    Args:
+        clip_encoder (CLIP): CLIP model for image-text embedding.
+        num_classes (int): Number of classes for classification.
+        fine_tune (bool): Whether to fine-tune the CLIP encoder backbone.
+    """
+    def __init__(self, clip_encoder, num_classes=100, fine_tune=False):
+        super().__init__()
+        self.clip_encoder = clip_encoder
+
+        output_dim = self.clip_encoder.visual.output_dim
+        print('clip visual output dim: ',output_dim)
+
+        self.fc = nn.Linear(output_dim, num_classes)
+        self.softmax = nn.Softmax(dim=1)
+
+        if not fine_tune:
+            for param in self.clip_encoder.parameters():
+                param.requires_grad = False
+
+    def forward(self, images):
+        features = self.clip_encoder.encode_image(images)
+        features = features.float()
+        logits = self.fc(features)
+        return self.softmax(logits)
