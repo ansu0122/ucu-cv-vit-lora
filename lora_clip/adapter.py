@@ -298,10 +298,7 @@ class LoRAVisionTransformer(nn.Module):
 
         self.ln_post = LayerNorm(width)
 
-        if True:
-            self.proj = lora.Linear(width, output_dim, r=r)
-        else:
-            self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
+        self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
 
     def forward(self, x: torch.Tensor):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
