@@ -294,10 +294,14 @@ class LoRAVisionTransformer(nn.Module):
         self.positional_embedding = nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
         self.ln_pre = LayerNorm(width)
 
-        self.transformer = LoRATransformer(width, layers, heads)
+        self.transformer = LoRATransformer(width, layers, heads, r=r)
 
         self.ln_post = LayerNorm(width)
-        self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
+
+        if True:
+            self.proj = lora.Linear(width, output_dim, r=r)
+        else:
+            self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
 
     def forward(self, x: torch.Tensor):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
@@ -739,7 +743,7 @@ def build_LoRA_model(state_dict: dict, r: int, lora_mode: str):
             if "positional_embedding" in name:
                 param.requires_grad = True
             if "text_projection" in name:
-                param.requies_grad = True
+                param.requires_grad = True
             if "logit_scale" in name:
                 param.requires_grad = True
     

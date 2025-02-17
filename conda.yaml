@@ -16,6 +16,8 @@ dependencies:
     - transformers
     - faiss-gpu==1.7.2
     - fiftyone
+    - regex
+    - ftfy
     - git+https://github.com/openai/CLIP.git
     - loraclip
     - wandb
