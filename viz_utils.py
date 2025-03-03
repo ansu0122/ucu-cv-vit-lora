@@ -34,7 +34,7 @@ def create_fiftyone_dataset(dataset, predicted_labels, dataset_name="cifar100-te
 
     for i in range(len(dataset)):
         img, true_label = dataset[i]
-        pred_label = predicted_labels[i]
+        pred_label = predicted_labels[i][0]
 
         img_pil = transform(img)
         img_path = os.path.join(save_dir, f"image_{i}.png")
